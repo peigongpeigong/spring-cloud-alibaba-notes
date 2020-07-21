@@ -1,0 +1,1 @@
+mysqlDriver=com.peigong.springcloudalibaba.spi.MysqlDriver

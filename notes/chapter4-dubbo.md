@@ -109,3 +109,13 @@ public class HelloController{
 
 }
 ```
+
+#### 主机绑定规则
+主机绑定表示的是Dubbo服务对外发布的IP地址，默认情况下Dubbo会按照以下顺序来查找并绑定
+主机IP地址
+- 查找环境变量中的DUBBO_IP_TO_BIND属性配置的IP地址
+- 查找dubbo.protocol.host属性配置的IP地址，默认是空，如果没有配置或者IP
+  地址不合法，则继续往下查找
+- 通过LocalHost.getHostAddress获取本机IP地址，如果获取失败，则继续往下查找
+- 如果配置了注册中心的地址，则使用Socket通信连接到注册中心的地址后，使用for循环通过
+  socket.getLocalAddress().getHostAddress()扫描各个网卡获取网卡IP地址
