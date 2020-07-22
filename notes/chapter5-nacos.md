@@ -17,3 +17,138 @@ Nacos关键特性有：
 - 服务及元数据管理：Nacos可以使开发者从微服务平台建设的视角管理数据中心的所有服务及
   元数据，包括管理服务的描述、生命周期、服务的静态以来分析、服务的健康状态、服务的流量
   管理、路由及安全策略、服务的SLA及最重要的metrics统计数据
+  
+  
+#### 在Spring Boot中使用Nacos作为Dubbo的注册中心
+
+##### Provider方
+需要引入的依赖如下
+```xml
+<dependency>
+    <groupId>com.peigong.springcloudalibaba</groupId>
+    <artifactId>nacos-sample-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+<dependency>
+    <groupId>com.alibaba.boot</groupId>
+    <artifactId>nacos-discovery-spring-boot-starter</artifactId>
+    <version>0.2.4</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.dubbo</groupId>
+    <artifactId>dubbo-spring-boot-starter</artifactId>
+    <version>2.7.7</version>
+</dependency>
+```
+
+创建Service
+```java
+@DubboService
+public class HelloServiceImpl implements HelloService {
+    @Override
+    public String hello(String name) {
+        return "Hello " + name;
+    }
+}
+```
+配置文件
+```properties
+spring.application.name=spring-dubbo-nacos-sample
+dubbo.registry.address=nacos://127.0.0.1:8848
+
+dubbo.protocol.name=dubbo
+dubbo.protocol.port=20880
+```
+启动项目就可以在Nacos的服务列表里看到HelloService了
+
+
+#### Spring Cloud 中使用Nacos作为Dubbo的注册中心
+
+##### Provider端
+引入依赖
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-dubbo</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.peigong.springcloudalibaba</groupId>
+    <artifactId>spring-cloud-nacos-sample-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-alibaba-nacos-discovery</artifactId>
+</dependency>
+```
+
+Service实现与正常的Dubbo Service无区别
+
+在Spring Cloud中使用Nacos的配置如下
+```properties
+spring.application.name=spring-cloud-nacos-sample
+
+# 与@DubboComponentScan效果相同
+dubbo.scan.base-packages=com.peigong.springcloudalibaba.service
+dubbo.protocol.name=dubbo
+dubbo.protocol.port=20880
+# 表示dubbo的注册中心挂载到spring-cloud注册中心
+dubbo.registry.address=spring-cloud://localhost
+
+spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848
+```
+
+##### Consumer端
+依赖如下
+```xml
+<dependency>
+    <groupId>com.peigong.springcloudalibaba</groupId>
+    <artifactId>spring-cloud-nacos-sample-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-dubbo</artifactId>
+    <version>2.2.0.RELEASE</version>
+</dependency>
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-alibaba-nacos-discovery</artifactId>
+    <version>2.2.0.RELEASE</version>
+</dependency>
+```
+
+配置文件如下
+```properties
+dubbo.cloud.subscribed-services=spring-cloud-nacos-sample
+spring.application.name=spring-cloud-nacos-consumer
+spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848
+```
+
+创建一个Controller进行测试
+```java
+@RestController
+public class HelloController {
+
+    @Reference
+    private HelloService helloService;
+
+    @GetMapping("hello")
+    public Object hello(String name) {
+        return helloService.hello(name);
+    }
+
+}
+```
