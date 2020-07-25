@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: spring-cloud-sentinel-dashboard-sample
+  cloud:
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:7777
+        port: 8791
+        client-ip: 127.0.0.1
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
